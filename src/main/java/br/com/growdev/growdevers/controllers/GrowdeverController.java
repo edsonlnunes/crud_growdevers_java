@@ -4,81 +4,64 @@ import br.com.growdev.growdevers.database.Database;
 import br.com.growdev.growdevers.dtos.*;
 import br.com.growdev.growdevers.enums.EStatus;
 import br.com.growdev.growdevers.models.Growdever;
+import br.com.growdev.growdevers.repositories.GrowdeverRepository;
+import br.com.growdev.growdevers.repositories.specifications.GrowdeverSpecification;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 
 @RestController
-@RequestMapping("growdevers")
+@RequestMapping("/growdevers")
 public class GrowdeverController {
 
     // URL => dominio.com.br/growdevers/id?name=Edson
     // Query Params
 
+    @Autowired // injeção de dependencia = dependecy injection = padrão de projeto (design patter)
+    private GrowdeverRepository growdeverRepository;
+
     @GetMapping
-    public ResponseEntity<List<GrowdeverList>> listGrowdevers(@RequestParam(required = false) String name, @RequestParam(required = false) EStatus status) {
-//        var data = Database.getGrowdevers().stream().map(
-//                (growdever) -> new GrowdeverList(growdever)
-//        ).toList();
+    public ResponseEntity<List<GrowdeverList>> listGrowdevers(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) EStatus status,
+            @RequestParam(required = false) String email
+    ) {
+        var specification = GrowdeverSpecification.filterByNameAndStatus(name, status, email);
 
-        var data = Database.getGrowdevers().stream().filter(growdever-> {
-
-            // nome e status ao tempo
-            if(name != null && status != null){
-                return growdever.getName().toLowerCase().contains(name.toLowerCase())
-                        && growdever.getStatus().equals(status);
-            }
-
-            // somente nome ou somente status
-            if(name != null || status != null){
-                var filterByName = false;
-                var filterByStatus = false;
-
-                if(name != null){
-                    filterByName = growdever.getName().toLowerCase().contains(name.toLowerCase());
-                }
-
-                if(status != null){
-                    filterByStatus = growdever.getStatus().equals(status);
-                }
-
-                return filterByName || filterByStatus;
-            }
-
-            return true;
-        }).map(
+        var data = growdeverRepository.findAll(specification).stream().map(
                 (growdever) -> new GrowdeverList(growdever)
         ).toList();
-
 
         return ResponseEntity.ok(data); // 200
     }
 
     @GetMapping("/{id}")
-    public  ResponseEntity getGrowdever(@PathVariable UUID id){
-        var growdever = Database.getGrowdeverById(id);
+    public ResponseEntity getGrowdever(@PathVariable UUID id) {
+        var optional = growdeverRepository.findById(id);
 
-        if(growdever == null){
+        if (optional.isEmpty()) {
             return ResponseEntity.badRequest().body(new ErrorData("Growdever não localizado"));
         }
 
-        var growDetail = new GrowdeverDetail(growdever);
+        var growDetail = new GrowdeverDetail(optional.get());
 
-        return  ResponseEntity.ok(growDetail);
+        return ResponseEntity.ok(growDetail);
     }
 
     @PostMapping
+    @Transactional
     public ResponseEntity createGrowdever(@RequestBody @Valid CreateGrowdever data) {
-        if(Database.growdeverExitsByCPF(data.cpf())){
+        if (growdeverRepository.existsByCpf(data.cpf())) {
             return ResponseEntity.badRequest().body(new ErrorData("CPF já cadastrado"));
         }
 
-        if(Database.growdeverExitsByEmail(data.email())){
+        if (growdeverRepository.existsByEmail(data.email())) {
             return ResponseEntity.badRequest().body(new ErrorData("E-mail já cadastrado"));
         }
 
@@ -90,34 +73,33 @@ public class GrowdeverController {
                 data.status()
         );
 
-        Database.addGrowdever(growdever);
+        growdeverRepository.save(growdever);
 
         return ResponseEntity.noContent().build(); // 201
     }
 
     @DeleteMapping("/{id}") // parametro de rota
     public ResponseEntity deleteGrowdever(@PathVariable UUID id) {
-        var growdever = Database.getGrowdeverById(id);
-
-        if(growdever == null){
+        if (!growdeverRepository.existsById(id)) {
             return ResponseEntity.badRequest().body(new ErrorData("Growdever não localizado"));
         }
 
-        Database.removeGrowdever(growdever);
+        growdeverRepository.deleteById(id);
 
         return ResponseEntity.noContent().build(); // 201
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity updateGrowdever(@RequestBody @Valid UpdateGrowdever data, @PathVariable UUID id ){
+    @Transactional
+    public ResponseEntity updateGrowdever(@RequestBody @Valid UpdateGrowdever data, @PathVariable UUID id) {
 
         var growdever = Database.getGrowdeverById(id);
 
-        if(growdever == null){
+        if (optional.isEmpty()) {
             return ResponseEntity.badRequest().body(new ErrorData("Growdever não localizado"));
         }
 
-        if(data.email() != null && Database.growdeverExitsByEmail(data.email())){
+        if (data.email() != null && growdeverRepository.existsByEmail(data.email())) {
             return ResponseEntity.badRequest().body(new ErrorData("Já existe um growdever com este e-mail"));
         }
 
