@@ -7,7 +7,6 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,9 +17,8 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-@Setter
 @Entity
-@Table(name = "growdevers", schema = "growdevers")
+@Table(name = "growdevers")
 public class Growdever {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -33,8 +31,12 @@ public class Growdever {
     @Enumerated(EnumType.STRING)
     private EStatus status;
 
+    // Um pra muitos
+    // OneToMany
+    // ManyToOne
+
     // UM growdever tem MUITAS skills
-    // One growdever has MANY skills
+    // ONE growdever has MANY skills
     // OneToMany
     @OneToMany(fetch = FetchType.EAGER)
     @JoinColumn(name = "growdever_id")
@@ -42,6 +44,10 @@ public class Growdever {
 
     // List => É a interface que define os comportamentos (ou seja, é a abstracao)
     // ArrayList => É a implementacao da interface List (define como vai acontecer os comportamentos definidos em List)
+
+    // Tipos de carregamento (fetch)
+    // Lazy => Carregamento preguiçoso, ou seja, so carrega quando for solicitado
+    // Eager => Carregamento instantaneo, ou seja, carrega mesmo quando nao for solicitado
 
     public Growdever(String name, String email, String cpf, String numberPhone, EStatus status) {
         this.name = name;

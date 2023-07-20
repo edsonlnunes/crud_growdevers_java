@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.util.UUID;
 
@@ -12,19 +11,20 @@ import java.util.UUID;
 @NoArgsConstructor
 @Getter
 @Entity
-@Table(name = "skills", schema = "growdevers")
+@Table(name = "growdevers_skills")
 public class GrowdeverSkill {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Id
     private UUID id;
     private String name;
 
-    // MUITAS skills pertencem a UM growdever
-    // MANY skills has ONE growdever
-    // ManyToOne
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "growdever_id")
-    private Growdever growdever;
+    @Column(name = "growdever_id")
+    private UUID growdeverId;
+
+    public GrowdeverSkill(String name, UUID growdeverId){
+        this.name = name;
+        this.growdeverId = growdeverId;
+    }
 }
 
 // Um pra um?

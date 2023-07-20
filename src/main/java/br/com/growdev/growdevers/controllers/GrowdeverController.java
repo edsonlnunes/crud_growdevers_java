@@ -1,6 +1,5 @@
 package br.com.growdev.growdevers.controllers;
 
-import br.com.growdev.growdevers.database.Database;
 import br.com.growdev.growdevers.dtos.*;
 import br.com.growdev.growdevers.enums.EStatus;
 import br.com.growdev.growdevers.models.Growdever;
@@ -91,21 +90,17 @@ public class GrowdeverController {
 
     @PutMapping("/{id}")
     @Transactional
-    public ResponseEntity updateGrowdever(@RequestBody @Valid UpdateGrowdever data, @PathVariable UUID id) {
+    public ResponseEntity updateGrowdever(@PathVariable UUID id, @RequestBody UpdateGrowdever data) {
 
-        var growdever = Database.getGrowdeverById(id);
-
-        if (optional.isEmpty()) {
-            return ResponseEntity.badRequest().body(new ErrorData("Growdever não localizado"));
+        if (!growdeverRepository.existsById(id)) {
+            return ResponseEntity.badRequest().body(new ErrorData("Growdever não localizado."));
         }
-
-        if (data.email() != null && growdeverRepository.existsByEmail(data.email())) {
-            return ResponseEntity.badRequest().body(new ErrorData("Já existe um growdever com este e-mail"));
+        if(data.email() != null && growdeverRepository.existsByEmail(data.email())) {
+            return ResponseEntity.badRequest().body(new ErrorData("Já existe um growdever com este e-mail. "));
         }
-
+        var growdever = growdeverRepository.getReferenceById(id);
         growdever.updateInfo(data);
-
-        Database.updateGrowdever(growdever);
+        //growdeverRepository.save(growdever);
 
         return ResponseEntity.noContent().build();
     }

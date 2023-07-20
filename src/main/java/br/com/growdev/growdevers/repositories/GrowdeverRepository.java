@@ -30,7 +30,7 @@ public interface GrowdeverRepository extends JpaRepository<Growdever, UUID>, Jpa
 //            or
 //                g.name = :name
 //            """)
-    @Query(value = "select count(g.id) from growdevers.growdevers g where g.email = :email or g.name = :name", nativeQuery = true)
+    @Query(value = "select count(g.id) from growdevers g where g.email = :email or g.name = :name", nativeQuery = true)
     int procuraPeloEmailOuName(String email, String name);
 
 }
