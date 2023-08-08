@@ -5,10 +5,15 @@ import br.com.growdev.growdevers.dtos.UpdateGrowdever;
 import br.com.growdev.growdevers.enums.EStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,7 +24,8 @@ import java.util.UUID;
 @Getter
 @Entity
 @Table(name = "growdevers")
-public class Growdever {
+@EqualsAndHashCode(of = "id")
+public class Growdever implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -30,6 +36,7 @@ public class Growdever {
     private String numberPhone;
     @Enumerated(EnumType.STRING)
     private EStatus status;
+    private String password;
 
     // Um pra muitos
     // OneToMany
@@ -49,12 +56,13 @@ public class Growdever {
     // Lazy => Carregamento preguiçoso, ou seja, so carrega quando for solicitado
     // Eager => Carregamento instantaneo, ou seja, carrega mesmo quando nao for solicitado
 
-    public Growdever(String name, String email, String cpf, String numberPhone, EStatus status) {
+    public Growdever(String name, String email, String cpf, String numberPhone, EStatus status, String password) {
         this.name = name;
         this.email = email;
         this.cpf = cpf;
         this.numberPhone = numberPhone;
         this.status = status;
+        this.password = password;
         skills = new ArrayList<>();
     }
 
@@ -74,5 +82,35 @@ public class Growdever {
         if(data.status() != null){
             status = data.status();
         }
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+    }
+
+    @Override
+    public String getUsername() {
+        return email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
     }
 }

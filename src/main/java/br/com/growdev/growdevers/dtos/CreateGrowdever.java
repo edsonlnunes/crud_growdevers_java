@@ -20,7 +20,9 @@ public record CreateGrowdever(
         @Email
         String email,
         @NotNull
-        EStatus status
+        EStatus status,
+        @NotBlank
+        String password
 ) { }
 
 // @NotNull -> utilizado para todos os tipos de dados -> a informação não pode ser nula, mas pode ser vazia

@@ -1,0 +1,1 @@
+ALTER TABLE growdevers ADD COLUMN password text not null;

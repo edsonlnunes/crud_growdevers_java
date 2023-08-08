@@ -5,6 +5,7 @@ import br.com.growdev.growdevers.models.Growdever;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.List;
 import java.util.UUID;
@@ -15,6 +16,8 @@ public interface GrowdeverRepository extends JpaRepository<Growdever, UUID>, Jpa
     Boolean existsByCpf(String cpf);
 
     Boolean existsByEmail(String email);
+
+    UserDetails findByEmail(String email);
 
     //List<Growdever> findAllByLikeNameIgnoreCaseAndStatus(String name, EStatus status);
 

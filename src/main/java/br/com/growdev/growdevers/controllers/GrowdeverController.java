@@ -8,6 +8,8 @@ import br.com.growdev.growdevers.repositories.specifications.GrowdeverSpecificat
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,12 +27,18 @@ public class GrowdeverController {
     @Autowired // injeção de dependencia = dependecy injection = padrão de projeto (design patter)
     private GrowdeverRepository growdeverRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @GetMapping
     public ResponseEntity<List<GrowdeverList>> listGrowdevers(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) EStatus status,
-            @RequestParam(required = false) String email
+            @RequestParam(required = false) String email,
+            @AuthenticationPrincipal Growdever g
     ) {
+        System.out.println(g.getId());
+        System.out.println(g.getName());
         var specification = GrowdeverSpecification.filterByNameAndStatus(name, status, email);
 
         var data = growdeverRepository.findAll(specification).stream().map(
@@ -69,7 +77,8 @@ public class GrowdeverController {
                 data.email(),
                 data.cpf(),
                 data.phone(),
-                data.status()
+                data.status(),
+                passwordEncoder.encode(data.password())
         );
 
         growdeverRepository.save(growdever);
