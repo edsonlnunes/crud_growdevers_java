@@ -2,11 +2,13 @@ package br.com.growdev.growdevers.repositories;
 
 import br.com.growdev.growdevers.enums.EStatus;
 import br.com.growdev.growdevers.models.Growdever;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,6 +20,21 @@ public interface GrowdeverRepository extends JpaRepository<Growdever, UUID>, Jpa
     Boolean existsByEmail(String email);
 
     UserDetails findByEmail(String email);
+
+    @Query(value = """
+            select
+            	count(b.*) as qtd_budgets,
+            	count(c.*) as qtd_contracts
+            from
+            	budgets b
+            left join
+            	contracts c
+            on
+            	b.id = c.budget_id
+            where
+            	b.date between :start and :end;
+            """,nativeQuery = true)
+    int qualquerNome(LocalDate start, LocalDate end);
 
     //List<Growdever> findAllByLikeNameIgnoreCaseAndStatus(String name, EStatus status);
 

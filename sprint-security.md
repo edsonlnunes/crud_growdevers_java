@@ -192,7 +192,7 @@ Em aula estamos utilizando a seguinte dependencia:
 ```
 
 ## 9- Criar o serviço para gerar o Token
-Depois de adicionar a dependencia do Jwt Token deve ser criado uma classe para servir de serviço para realizar a geração e a verificação do token.
+Depois de adicionar a dependencia do Jwt Token, deve ser criado uma classe para servir de serviço para realizar a geração e a verificação do token.
 
 Esta classe deve ficar dentro da pasta **services**, pode ser chamada de **TokenService** e precisa ter a anotação **@Service**
 
@@ -269,6 +269,80 @@ public ResponseEntity doLogin(@RequestBody @Valid LoginAuth data) {
 
 Voce pode ver que antes de retornar a resposta para o client está sendo utilizado o tokenServie para gerar o token. Através do método **getPrincipal** da váriavel **authentication** é possível buscar os dados do usuário, neste caso, o Growdever.
 
-Se você tentar fazer a requisição agora, voce vai ter o token JWT sendo retornado como resposta.
+## 11- Fazendo o login
 
-## 11-
+Agora, se voce fizer a requisição para a rota de login, voce receberá o TOKEN JWT como resposta e este TOKEN JWT será utilizado para provar que é voce que está realizando a requisição.
+
+## 12- Bloqueando as rotas da API
+
+Agora que temos o processo de autenticação funcionando, precisamos bloquear as rotas da API para elas não poderem ser acessadas por pessoas que não fizeram o login.
+
+Para isso vamos precisar fazer algumas alterações no método **securityFilterChain** da classe **SecurityConfigurations**. Voce pode adicionar o seguinte código:
+
+```
+@Bean
+public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    return http.csrf(csrf -> csrf.disable())
+            .sessionManagement(sm ->sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(req -> {
+                req.anyRequest().authenticated();
+            })
+            .build();
+}
+```
+
+Ao fazer isso e tentar fazer a requisição para qualquer rota da API você receberá uma resposta **403 forbidden**, isto vai acontecer por causa do código adicionado no método.
+A seguinte linha
+
+> req.anyRequest().authenticated();
+
+Faz com que o **SpringSecurity** bloqueie todas as rotas da API. No entanto, algumas rotas não podem ser bloqueadas, como a rota de login (como o usuário vai fazer a autenticação se não conseguir acessar a rota de login? kk).
+Além da rota de login, se o projeto estiver utilizando o Swagger para documentação então será necessário deixar a rota do swagger publica, além da rota de criar a conta do usuário (como o usuário vai fazer o login se nao conseguir criar uma conta? kk)
+
+Para deixar uma (ou mais) rotas públicas, deve ser adicionado o seguinte código
+
+```
+@Bean
+public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    return http.csrf(csrf -> csrf.disable())
+            .sessionManagement(sm ->sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(req -> {
+                req.requestMatchers(HttpMethod.POST, "/login").permitAll();
+                req.requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll();
+                req.anyRequest().authenticated();
+            })
+            .build();
+}
+```
+
+Perceba que agora, dentro do **authorizeHttpRequests** está sendo liberado a rota de login para o verbo POST
+
+> req.requestMatchers(HttpMethod.POST, "/login").permitAll();
+ 
+E a rota do swagger
+
+> req.requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll();
+
+Neste exemplo, eu não estou liberando a rota de criar Growdever pois ela precisa ser privada. (Entao como eu vou criar o primeiro Growdever para poder fazer o login? Simples... Crio direto no banco de dados via SQL)
+
+
+## 13- Autorizando a requisição
+
+Agora que bloqueamos as rotas da API e liberamos uma rota de LOGIN, é preciso desenvolver o fluxo para permitir que um usuário acesse a rota se passar o TOKEN JWT, assim, a API conseguira identificar quem está fazendo a requisição. Esse processo chamamos de **AUTORIZAÇÃO**
+
+Para autorizar o usuário, vamos utilizar um recurso disponível nas aplicações WEB de aplicações Java.
+
+![Alt text](./filters_vs_interceptors.jpg)
+
+Com base na imagem acima é possível visualizar e entender um pouco o fluxo de uma requisição em uma aplicação web em Java. Quando o **front-end** faz a requisição, antes da request chegar no controller é passado por uma etapa que chamamos de **Filters**, que nada mais são do filtros que podemos criar e implementar
+para decidirmos se a requisição pode ou não seguir em frente:
+
+> **Filters** são como assistentes que ajudam a cuidar das mensagens que chegam e saem. Imagine que você está enviando cartas e recebendo respostas. Os filtros de solicitação (requests) são como assistentes que checam as cartas antes de você recebê-las, verificando se tudo está certo e organizado. Os filtros de resposta (responses) são como assistentes que olham suas respostas antes de enviá-las, certificando-se de que tudo está arrumado e bonito.
+> Esses filtros podem fazer coisas como verificar se você é realmente quem diz ser, conferir se você tem permissão para ver a carta, garantir que as informações estejam corretas e até mesmo encolher a carta para economizar espaço. Eles são como etapas extras para tornar a comunicação na web mais segura e eficiente.
+
+Depois que a requisição passa pela etapa dos **Filters**, tem uma próxima etapa chamada **DispatcherServelet** que é responsável por direcionar a requisição para o lugar certo.
+
+> Por exemplo, se é feito uma requisição com o verbo POST e para a rota /doLogin, como que a aplicação sabe que precisa chamar o AuthController? É por causa desta etapa que a requisição chega no arquvio e método certo.
+
+ Seguindo o fluxo a proxima etapa antes de chegar nos Controllers
+
