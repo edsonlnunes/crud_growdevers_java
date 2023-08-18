@@ -20,11 +20,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/growdevers")
 public class GrowdeverController {
-
-    // URL => dominio.com.br/growdevers/id?name=Edson
-    // Query Params
-
-    @Autowired // injeção de dependencia = dependecy injection = padrão de projeto (design patter)
+    @Autowired
     private GrowdeverRepository growdeverRepository;
 
     @Autowired
@@ -37,8 +33,6 @@ public class GrowdeverController {
             @RequestParam(required = false) String email,
             @AuthenticationPrincipal Growdever g
     ) {
-        System.out.println(g.getId());
-        System.out.println(g.getName());
         var specification = GrowdeverSpecification.filterByNameAndStatus(name, status, email);
 
         var data = growdeverRepository.findAll(specification).stream().map(
@@ -53,7 +47,7 @@ public class GrowdeverController {
         var optional = growdeverRepository.findById(id);
 
         if (optional.isEmpty()) {
-            return ResponseEntity.badRequest().body(new ErrorData("Growdever não localizado"));
+            return ResponseEntity.badRequest().body(new ErrorData("","Growdever não localizado"));
         }
 
         var growDetail = new GrowdeverDetail(optional.get());
@@ -65,11 +59,11 @@ public class GrowdeverController {
     @Transactional
     public ResponseEntity createGrowdever(@RequestBody @Valid CreateGrowdever data) {
         if (growdeverRepository.existsByCpf(data.cpf())) {
-            return ResponseEntity.badRequest().body(new ErrorData("CPF já cadastrado"));
+            return ResponseEntity.badRequest().body(new ErrorData("cpf", "CPF ja cadastrado"));
         }
 
         if (growdeverRepository.existsByEmail(data.email())) {
-            return ResponseEntity.badRequest().body(new ErrorData("E-mail já cadastrado"));
+            return ResponseEntity.badRequest().body(new ErrorData("email","E-mail ja cadastrado"));
         }
 
         var growdever = new Growdever(
@@ -89,7 +83,7 @@ public class GrowdeverController {
     @DeleteMapping("/{id}") // parametro de rota
     public ResponseEntity deleteGrowdever(@PathVariable UUID id) {
         if (!growdeverRepository.existsById(id)) {
-            return ResponseEntity.badRequest().body(new ErrorData("Growdever não localizado"));
+            return ResponseEntity.badRequest().body(new ErrorData("", "Growdever não localizado"));
         }
 
         growdeverRepository.deleteById(id);
@@ -102,11 +96,13 @@ public class GrowdeverController {
     public ResponseEntity updateGrowdever(@PathVariable UUID id, @RequestBody UpdateGrowdever data) {
 
         if (!growdeverRepository.existsById(id)) {
-            return ResponseEntity.badRequest().body(new ErrorData("Growdever não localizado."));
+            return ResponseEntity.badRequest().body(new ErrorData( "","Growdever não localizado."));
         }
+
         if(data.email() != null && growdeverRepository.existsByEmail(data.email())) {
-            return ResponseEntity.badRequest().body(new ErrorData("Já existe um growdever com este e-mail. "));
+            return ResponseEntity.badRequest().body(new ErrorData("email", "Já existe um growdever com este e-mail. "));
         }
+
         var growdever = growdeverRepository.getReferenceById(id);
         growdever.updateInfo(data);
         //growdeverRepository.save(growdever);

@@ -38,23 +38,9 @@ public class Growdever implements UserDetails {
     private EStatus status;
     private String password;
 
-    // Um pra muitos
-    // OneToMany
-    // ManyToOne
-
-    // UM growdever tem MUITAS skills
-    // ONE growdever has MANY skills
-    // OneToMany
     @OneToMany(fetch = FetchType.EAGER)
     @JoinColumn(name = "growdever_id")
     private List<GrowdeverSkill> skills;
-
-    // List => É a interface que define os comportamentos (ou seja, é a abstracao)
-    // ArrayList => É a implementacao da interface List (define como vai acontecer os comportamentos definidos em List)
-
-    // Tipos de carregamento (fetch)
-    // Lazy => Carregamento preguiçoso, ou seja, so carrega quando for solicitado
-    // Eager => Carregamento instantaneo, ou seja, carrega mesmo quando nao for solicitado
 
     public Growdever(String name, String email, String cpf, String numberPhone, EStatus status, String password) {
         this.name = name;

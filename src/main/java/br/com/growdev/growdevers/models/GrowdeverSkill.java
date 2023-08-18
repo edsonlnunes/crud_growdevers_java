@@ -27,6 +27,3 @@ public class GrowdeverSkill {
     }
 }
 
-// Um pra um?
-// Um pra muitos?
-// Muitos para muitos?

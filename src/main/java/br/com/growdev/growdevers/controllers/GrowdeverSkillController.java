@@ -29,7 +29,7 @@ public class GrowdeverSkillController {
         var optionalGrowdever = growdeverRepository.findById(idGrowdever);
 
         if (optionalGrowdever.isEmpty()) {
-            return ResponseEntity.badRequest().body(new ErrorData("Growdever não localizado"));
+            return ResponseEntity.badRequest().body(new ErrorData("","Growdever não localizado"));
         }
 
         var growdever = optionalGrowdever.get();
@@ -52,7 +52,7 @@ public class GrowdeverSkillController {
         var optionalGrowdever = growdeverRepository.findById(idGrowdever);
 
         if (optionalGrowdever.isEmpty()) {
-            return ResponseEntity.badRequest().body(new ErrorData("Growdever não localizado"));
+            return ResponseEntity.badRequest().body(new ErrorData("","Growdever não localizado"));
         }
 
         var growdever = optionalGrowdever.get();
@@ -64,7 +64,7 @@ public class GrowdeverSkillController {
         // skillOptional.isPresent() => retorna verdadeiro SE a skill existir
         // skillOptional.isEmpty() => retornar verdadeiro SE  a skill NÃO existir
         if (skillOptional.isEmpty()) {
-            return ResponseEntity.badRequest().body(new ErrorData("Skill não existe"));
+            return ResponseEntity.badRequest().body(new ErrorData("","Skill não existe"));
         }
 
         growdeverSkillRepository.delete(skillOptional.get());

@@ -14,45 +14,11 @@ import java.util.UUID;
 
 // repository = padrão de projeto = design pattern
 public interface GrowdeverRepository extends JpaRepository<Growdever, UUID>, JpaSpecificationExecutor<Growdever> {
-
     Boolean existsByCpf(String cpf);
 
     Boolean existsByEmail(String email);
 
     UserDetails findByEmail(String email);
-
-    @Query(value = """
-            select
-            	count(b.*) as qtd_budgets,
-            	count(c.*) as qtd_contracts
-            from
-            	budgets b
-            left join
-            	contracts c
-            on
-            	b.id = c.budget_id
-            where
-            	b.date between :start and :end;
-            """,nativeQuery = true)
-    int qualquerNome(LocalDate start, LocalDate end);
-
-    //List<Growdever> findAllByLikeNameIgnoreCaseAndStatus(String name, EStatus status);
-
-    void deleteByName(String name);
-
-//    @Query("""
-//            select
-//                count(g.id)
-//            from
-//                Growdever g
-//            where
-//                g.email = :email
-//            or
-//                g.name = :name
-//            """)
-    @Query(value = "select count(g.id) from growdevers g where g.email = :email or g.name = :name", nativeQuery = true)
-    int procuraPeloEmailOuName(String email, String name);
-
 }
 
 

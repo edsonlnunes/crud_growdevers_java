@@ -1,7 +1,7 @@
 package br.com.growdev.growdevers.config;
 
+import br.com.growdev.growdevers.dtos.ErrorData;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -15,9 +15,4 @@ public class HandleException {
         return ResponseEntity.badRequest().body(errors);
     }
 
-    public record ErrorData(String field, String message){
-        public ErrorData(FieldError error){
-            this(error.getField(), error.getDefaultMessage());
-        }
-    }
 }
