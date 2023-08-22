@@ -18,6 +18,16 @@ public class GrowdeverBuilder {
         return new GrowdeverBuilder();
     }
 
+    public GrowdeverBuilder withName(String name){
+        this.name = name;
+        return this;
+    }
+
+    public GrowdeverBuilder withStatus(EStatus status){
+        this.status = status;
+        return this;
+    }
+
     public GrowdeverBuilder withCpf(String cpf){
         this.cpf = cpf;
         return this;

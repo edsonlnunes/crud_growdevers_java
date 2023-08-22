@@ -29,11 +29,9 @@ public class GrowdeverController {
     @GetMapping
     public ResponseEntity<List<GrowdeverList>> listGrowdevers(
             @RequestParam(required = false) String name,
-            @RequestParam(required = false) EStatus status,
-            @RequestParam(required = false) String email,
-            @AuthenticationPrincipal Growdever g
+            @RequestParam(required = false) EStatus status
     ) {
-        var specification = GrowdeverSpecification.filterByNameAndStatus(name, status, email);
+        var specification = GrowdeverSpecification.filterByNameAndStatus(name, status);
 
         var data = growdeverRepository.findAll(specification).stream().map(
                 (growdever) -> new GrowdeverList(growdever)
@@ -47,7 +45,7 @@ public class GrowdeverController {
         var optional = growdeverRepository.findById(id);
 
         if (optional.isEmpty()) {
-            return ResponseEntity.badRequest().body(new ErrorData("","Growdever não localizado"));
+            return ResponseEntity.notFound().build();
         }
 
         var growDetail = new GrowdeverDetail(optional.get());
@@ -77,13 +75,19 @@ public class GrowdeverController {
 
         growdeverRepository.save(growdever);
 
-        return ResponseEntity.noContent().build(); // 201
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}") // parametro de rota
     public ResponseEntity deleteGrowdever(@PathVariable UUID id) {
+        // exclusão lógica (soft delete) => Que nao remove o registro do banco de dados, somente altera uma coluna
+        //                    para indicar que aquele registro está removido (ou desabilitado)
+
+        // exclusão fisíca (hard delete) => Remove o registro do banco de dados.
+
+
         if (!growdeverRepository.existsById(id)) {
-            return ResponseEntity.badRequest().body(new ErrorData("", "Growdever não localizado"));
+            return ResponseEntity.notFound().build();
         }
 
         growdeverRepository.deleteById(id);
@@ -96,7 +100,7 @@ public class GrowdeverController {
     public ResponseEntity updateGrowdever(@PathVariable UUID id, @RequestBody UpdateGrowdever data) {
 
         if (!growdeverRepository.existsById(id)) {
-            return ResponseEntity.badRequest().body(new ErrorData( "","Growdever não localizado."));
+            return ResponseEntity.notFound().build();
         }
 
         if(data.email() != null && growdeverRepository.existsByEmail(data.email())) {

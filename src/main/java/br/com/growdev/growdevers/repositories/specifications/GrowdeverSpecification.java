@@ -8,7 +8,7 @@ import org.springframework.data.jpa.domain.Specification;
 import java.util.ArrayList;
 
 public class GrowdeverSpecification {
-    public static Specification<Growdever> filterByNameAndStatus(String name, EStatus status, String email){
+    public static Specification<Growdever> filterByNameAndStatus(String name, EStatus status){
         return (root, queryBuilder, criteriaBuilder) -> {
             // root => Faz referencia para a entidade (Growdever)
             // criteriaBuilder => É um construtor de condicoes (igual, like, maior que, maior igual que)
@@ -26,10 +26,6 @@ public class GrowdeverSpecification {
                 conditions.add(
                         criteriaBuilder.equal(root.get("status"), status)
                 );
-            }
-
-            if(email != null && !email.isEmpty()){
-                // ...
             }
 
             // int != string
