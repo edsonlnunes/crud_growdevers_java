@@ -37,8 +37,8 @@ public class SecurityFilter extends OncePerRequestFilter {
             try {
                 var subject = tokenService.verifyToken(token);
                 var growdever = growdeverRepository.findByEmail(subject);
-                var authentication = new UsernamePasswordAuthenticationToken(growdever,null, growdever.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                var userLogged = new UsernamePasswordAuthenticationToken(growdever,null, growdever.getAuthorities());
+                SecurityContextHolder.getContext().setAuthentication(userLogged);
             } catch (TokenExpiredException ex){
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("Token expirado");

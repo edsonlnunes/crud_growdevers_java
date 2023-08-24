@@ -1,8 +1,6 @@
 package br.com.growdev.growdevers.controllers;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.UUID;
 
 import br.com.growdev.growdevers.builders.dtos.CreateGrowdeverBuilder;
@@ -12,6 +10,7 @@ import br.com.growdev.growdevers.dtos.GrowdeverDetail;
 import br.com.growdev.growdevers.dtos.GrowdeverList;
 import br.com.growdev.growdevers.enums.EStatus;
 import br.com.growdev.growdevers.repositories.GrowdeverRepository;
+import br.com.growdev.growdevers.services.TokenService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,6 +20,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -29,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @ActiveProfiles("test")
-@AutoConfigureMockMvc(addFilters = false)
+@AutoConfigureMockMvc
 public class GrowdeverControllerTest {
 
     @Autowired
@@ -40,6 +40,13 @@ public class GrowdeverControllerTest {
 
     @Autowired
     private GrowdeverRepository growdeverRepository;
+
+    public String makeAuthToken(){
+        var growdever = GrowdeverBuilder.init().withEmail("logged@email.com").withCpf("99999999999").builder();
+        growdeverRepository.save(growdever);
+        var token = new TokenService().getToken(growdever);
+        return token;
+    }
 
     @AfterEach
     public void afterEach() {
@@ -52,6 +59,7 @@ public class GrowdeverControllerTest {
 
     @Test
     @DisplayName("Deve retornar 400 devido aos dados estarem inválidos")
+    @WithMockUser
     public void createGrowdeverCase1() throws Exception {
         // given (dado)
         var dataJson = mapper.writeValueAsString(
@@ -63,6 +71,7 @@ public class GrowdeverControllerTest {
         // when (quando)
         var response = mockMvc.perform(
                 MockMvcRequestBuilders.post("/growdevers")
+//                        .header("Authorization", "Bearer ")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(dataJson)
         ).andReturn().getResponse();
@@ -85,6 +94,7 @@ public class GrowdeverControllerTest {
 
     @Test
     @DisplayName("Deve retornar 400 quando já existir um usuário com o cpf informado cadastrado no banco de dados")
+    @WithMockUser
     public void createGrowdeverCase2() throws Exception {
         // given (dado)
         var dataJson = mapper.writeValueAsString(CreateGrowdeverBuilder.init().builder());
@@ -110,6 +120,7 @@ public class GrowdeverControllerTest {
 
     @Test
     @DisplayName("Deve retornar 400 quando já existir um usuário com o email informado cadastrado no banco de dados")
+    @WithMockUser
     public void createGrowdeverCase3() throws Exception {
         // given (dado)
         var dataJson = mapper.writeValueAsString(CreateGrowdeverBuilder.init().builder());
@@ -138,10 +149,12 @@ public class GrowdeverControllerTest {
     public void createGrowdeverCase4() throws Exception {
         // given (dado)
         var dataJson = mapper.writeValueAsString(CreateGrowdeverBuilder.init().builder());
+        var token = makeAuthToken();
 
         // when (quando)
         var response = mockMvc.perform(
                 MockMvcRequestBuilders.post("/growdevers")
+                        .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(dataJson)
         ).andReturn().getResponse();
@@ -155,13 +168,16 @@ public class GrowdeverControllerTest {
 */
     @Test
     @DisplayName("Deve retornar 404 quando nao encontrar o growdever")
+    @WithMockUser
     public  void getGrowdeverCase1() throws Exception {
         // given
         var uid = UUID.randomUUID();
+        var token = makeAuthToken();
 
         // when
         var response = mockMvc.perform(
                 MockMvcRequestBuilders.get("/growdevers/" + uid)
+                        .header("Authorization", "Bearer " + token)
         ).andReturn().getResponse();
 
         // then
@@ -170,6 +186,7 @@ public class GrowdeverControllerTest {
 
     @Test
     @DisplayName("Deve retornar 204 quando encontrar o growdever")
+    @WithMockUser
     public  void getGrowdeverCase2() throws Exception {
         // given
          var growdever = GrowdeverBuilder.init().builder();
@@ -195,6 +212,7 @@ public class GrowdeverControllerTest {
 
     @Test
     @DisplayName("Deve retornar 404 quando acessar o id do growdever")
+    @WithMockUser
     public void deleteGrowdeverCase1() throws Exception {
         //given
         var id = UUID.randomUUID();
@@ -210,6 +228,7 @@ public class GrowdeverControllerTest {
 
     @Test
     @DisplayName("Deve retornar 204 ao deletar o growdever")
+    @WithMockUser
     public void deleteGrowdeverCase2() throws Exception {
         //given
         var growdever = GrowdeverBuilder.init().builder();
@@ -237,6 +256,7 @@ public class GrowdeverControllerTest {
 
     @Test
     @DisplayName("Deve retornar 200 com uma lista vazia")
+    @WithMockUser
     public void listGrowdeversCase1() throws Exception {
         // given (dado)
 
@@ -252,7 +272,8 @@ public class GrowdeverControllerTest {
 
     // lista os growdevers sem filtro (retornando uma lista preenchida)
     @Test
-    @DisplayName("Deve retornar 200 com uma lista com dois elementos")
+    @DisplayName("Deve retornar 200 com uma lista com tres elementos")
+    @WithMockUser
     public void listGrowdeversCase2() throws Exception {
         // given (dado)
 
@@ -281,6 +302,7 @@ public class GrowdeverControllerTest {
     // lista os growdevers filtrado por nome
     @Test
     @DisplayName("Deve retornar 200 com uma lista com 2 elementos filtrados por nome")
+    @WithMockUser
     public void listGrowdeversCase3() throws Exception {
         // given (dado)
         var g1 = GrowdeverBuilder.init().withName("Ana Clara").builder();
@@ -323,6 +345,7 @@ public class GrowdeverControllerTest {
     // lista os growdevers filtrado por status
     @Test
     @DisplayName("Deve retornar 200 com uma lista com 1 elemento filtrado por status")
+    @WithMockUser
     public void listGrowdeversCase4() throws Exception {
         // given (dado)
         var g1 = GrowdeverBuilder.init().withName("Ana Clara").builder();
@@ -365,6 +388,7 @@ public class GrowdeverControllerTest {
     // lista os growdevers filtrado por nome e status
     @Test
     @DisplayName("Deve retornar 200 com uma lista com 1 elemento filtrado por name e status")
+    @WithMockUser
     public void listGrowdeversCase5() throws Exception {
         // given (dado)
         var g1 = GrowdeverBuilder.init().withName("Ana Clara").builder();

@@ -55,7 +55,8 @@ public class GrowdeverController {
 
     @PostMapping
     @Transactional
-    public ResponseEntity createGrowdever(@RequestBody @Valid CreateGrowdever data) {
+    public ResponseEntity createGrowdever(@RequestBody @Valid CreateGrowdever data, @AuthenticationPrincipal Growdever userLogged) {
+
         if (growdeverRepository.existsByCpf(data.cpf())) {
             return ResponseEntity.badRequest().body(new ErrorData("cpf", "CPF ja cadastrado"));
         }

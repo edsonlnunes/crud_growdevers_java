@@ -2,10 +2,10 @@ package br.com.growdev.growdevers.models;
 
 import br.com.growdev.growdevers.builders.dtos.UpdateGrowdeverBuilder;
 import br.com.growdev.growdevers.builders.models.GrowdeverBuilder;
-import br.com.growdev.growdevers.dtos.UpdateGrowdever;
 import br.com.growdev.growdevers.enums.EStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 
